@@ -16,14 +16,14 @@ fn hash(bytes: &[u8]) -> Vec<u8> {
 pub fn cert_to_identifier(cert: &Bytes) -> Option<CertIdentifier> {
     let h = hash(cert);
     match HASH_TO_ID.get(&h) {
-        Some(x) => Some(Bytes::from(*x)),
+        Some(x) => Some(Bytes::from_static(*x)),
         None => None,
     }
 }
 
 pub fn id_to_cert(id: &CertIdentifier) -> Option<Bytes> {
     match ID_TO_CERT.get(id) {
-        Some(x) => Some(Bytes::from(*x)),
+        Some(x) => Some(Bytes::from_static(*x)),
         None => None,
     }
 }
