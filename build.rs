@@ -20,7 +20,6 @@ struct IDCertTable {
 
 fn hash(bytes : &Vec<u8>) -> Vec<u8> {
     let mut result_256 = [0; 32];
-    dbg!(&bytes);
     blake::hash(256,bytes,&mut result_256).expect("Error hashing");
     result_256.to_vec()
 }

@@ -18,6 +18,10 @@ impl Compressor {
         Compressor { lookup }
     }
 
+    pub fn new_builtin() -> Self {
+        Compressor { lookup: builtins::cert_to_identifier}
+    }
+
     fn map_or_preserve_cert_entry(&self, mut entry: CertificateEntry) -> CertificateEntry {
         entry.data = match (self.lookup)(&entry.data) {
             Some(id) => id,
@@ -59,6 +63,10 @@ struct Decompressor {
 impl Decompressor {
     pub fn new(lookup: CertFunc) -> Self {
         Decompressor { lookup }
+    }
+
+    pub fn new_builtin() -> Self {
+        Decompressor { lookup: builtins::id_to_cert}
     }
 
     fn map_identifier(&self, mut entry: CertificateEntry) -> CertificateEntry {
