@@ -6,60 +6,91 @@ type CertIdentifier = Bytes;
 
 mod builtins;
 
-fn map_or_preserve_cert_entry(mut entry: CertificateEntry) -> CertificateEntry {
-    entry.data = match builtins::cert_to_identifier(&entry.data) {
-        Some(id) => id,
-        None => entry.data,
-    };
-    entry
+type IdFunc = fn(&Bytes) -> Option<CertIdentifier>;
+type CertFunc = fn(&CertIdentifier) -> Option<Bytes>;
+
+pub struct Compressor {
+    lookup: IdFunc,
 }
 
-fn map_identifier(mut entry: CertificateEntry) -> CertificateEntry {
-    entry.data = match builtins::id_to_cert(&entry.data) {
-        Some(cert_data) => cert_data,
-        None => entry.data,
-    };
-    entry
+impl Compressor {
+    pub fn new(lookup: IdFunc) -> Self {
+        Compressor { lookup }
+    }
+
+    fn map_or_preserve_cert_entry(&self, mut entry: CertificateEntry) -> CertificateEntry {
+        entry.data = match (self.lookup)(&entry.data) {
+            Some(id) => id,
+            None => entry.data,
+        };
+        entry
+    }
+
+    pub fn compress_to_bytes(
+        &self,
+        cert_msg: Bytes,
+    ) -> Result<BytesMut, Box<dyn std::error::Error>> {
+        let output: BytesMut = BytesMut::with_capacity(cert_msg.len());
+        let mut writer = output.writer();
+        self.compress(cert_msg, &mut writer)?;
+        Ok(writer.into_inner())
+    }
+
+    pub fn compress(
+        &self,
+        mut cert_msg: Bytes,
+        writer: &mut impl Write,
+    ) -> Result<(), Box<dyn std::error::Error>> {
+        let mut cert_msg = CertificateMessage::read_from_bytes(&mut cert_msg)?;
+        cert_msg.certificate_entries = cert_msg
+            .certificate_entries
+            .into_iter()
+            .map(|x| self.map_or_preserve_cert_entry(x))
+            .collect();
+        cert_msg.write_to_bytes(writer)?;
+        Ok(())
+    }
 }
 
-pub fn compress_to_bytes(cert_msg: Bytes) -> Result<BytesMut, Box<dyn std::error::Error>> {
-    let output: BytesMut = BytesMut::with_capacity(cert_msg.len());
-    let mut writer = output.writer();
-    compress(cert_msg, &mut writer)?;
-    Ok(writer.into_inner())
+struct Decompressor {
+    lookup: CertFunc,
 }
 
-pub fn compress(
-    mut cert_msg: Bytes,
-    writer: &mut impl Write,
-) -> Result<(), Box<dyn std::error::Error>> {
-    let mut cert_msg = CertificateMessage::read_from_bytes(&mut cert_msg)?;
-    cert_msg.certificate_entries = cert_msg
-        .certificate_entries
-        .into_iter()
-        .map(map_or_preserve_cert_entry)
-        .collect();
-    cert_msg.write_to_bytes(writer)?;
-    Ok(())
-}
+impl Decompressor {
+    pub fn new(lookup: CertFunc) -> Self {
+        Decompressor { lookup }
+    }
 
-pub fn decompress_to_bytes(compressed_msg: Bytes) -> Result<BytesMut, Box<dyn std::error::Error>> {
-    let output: BytesMut = BytesMut::with_capacity(compressed_msg.len());
-    let mut writer = output.writer();
-    decompress(compressed_msg, &mut writer)?;
-    Ok(writer.into_inner())
-}
+    fn map_identifier(&self, mut entry: CertificateEntry) -> CertificateEntry {
+        entry.data = match (self.lookup)(&entry.data) {
+            Some(cert_data) => cert_data,
+            None => entry.data,
+        };
+        entry
+    }
 
-pub fn decompress(
-    mut compressed_msg: Bytes,
-    writer: &mut impl Write,
-) -> Result<(), Box<dyn std::error::Error>> {
-    let mut cert_msg = CertificateMessage::read_from_bytes(&mut compressed_msg)?;
-    cert_msg.certificate_entries = cert_msg
-        .certificate_entries
-        .into_iter()
-        .map(map_identifier)
-        .collect();
-    cert_msg.write_to_bytes(writer)?;
-    Ok(())
+    pub fn decompress_to_bytes(
+        &self,
+        compressed_msg: Bytes,
+    ) -> Result<BytesMut, Box<dyn std::error::Error>> {
+        let output: BytesMut = BytesMut::with_capacity(compressed_msg.len());
+        let mut writer = output.writer();
+        self.decompress(compressed_msg, &mut writer)?;
+        Ok(writer.into_inner())
+    }
+
+    pub fn decompress(
+        &self,
+        mut compressed_msg: Bytes,
+        writer: &mut impl Write,
+    ) -> Result<(), Box<dyn std::error::Error>> {
+        let mut cert_msg = CertificateMessage::read_from_bytes(&mut compressed_msg)?;
+        cert_msg.certificate_entries = cert_msg
+            .certificate_entries
+            .into_iter()
+            .map(|x| self.map_identifier(x))
+            .collect();
+        cert_msg.write_to_bytes(writer)?;
+        Ok(())
+    }
 }
