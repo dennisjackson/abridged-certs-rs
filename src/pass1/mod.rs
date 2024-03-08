@@ -58,7 +58,7 @@ impl Compressor {
     }
 }
 
-struct Decompressor {
+pub struct Decompressor {
     lookup: CertFunc,
 }
 
@@ -141,7 +141,9 @@ mod tests {
         cert_hex.retain(|x| !x.is_whitespace());
         let cert_bytes: bytes::Bytes = hex::decode(cert_hex).unwrap().into();
         let c = Compressor::new_builtin();
-        let out = c.compress_to_bytes(cert_bytes.clone()).expect("Compression succeeds");
+        let out = c
+            .compress_to_bytes(cert_bytes.clone())
+            .expect("Compression succeeds");
         println!("Compressed to {} from {}", out.len(), cert_bytes.len());
     }
 
@@ -152,7 +154,9 @@ mod tests {
         cert_hex.retain(|x| !x.is_whitespace());
         let cert_bytes: bytes::Bytes = hex::decode(cert_hex).unwrap().into();
         let c = Decompressor::new_builtin();
-        let out = c.decompress_to_bytes(cert_bytes.clone()).expect("Compression succeeds");
+        let out = c
+            .decompress_to_bytes(cert_bytes.clone())
+            .expect("Compression succeeds");
         println!("Decompressed from {} from {}", out.len(), cert_bytes.len());
     }
 
@@ -162,9 +166,13 @@ mod tests {
         cert_hex.retain(|x| !x.is_whitespace());
         let cert_bytes: bytes::Bytes = hex::decode(cert_hex).unwrap().into();
         let c = Compressor::new_builtin();
-        let out = c.compress_to_bytes(cert_bytes.clone()).expect("Compression succeeds");
+        let out = c
+            .compress_to_bytes(cert_bytes.clone())
+            .expect("Compression succeeds");
         let c = Decompressor::new_builtin();
-        let secondOut = c.decompress_to_bytes(out.clone().into()).expect("Compression succeeds");
-        assert_eq!(cert_bytes,secondOut);
+        let round_trip = c
+            .decompress_to_bytes(out.clone().into())
+            .expect("Compression succeeds");
+        assert_eq!(cert_bytes, round_trip);
     }
 }

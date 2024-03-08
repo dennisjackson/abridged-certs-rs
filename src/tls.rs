@@ -190,7 +190,7 @@ mod tests {
         let mut cert_hex: String = String::from(CERTMSG);
         cert_hex.retain(|x| !x.is_whitespace());
         let mut cert_bytes: bytes::Bytes = hex::decode(cert_hex).unwrap().into();
-        let msg =
+        let _ =
             CertificateMessage::read_from_bytes(&mut cert_bytes).expect("Should correctly decode");
         assert_eq!(cert_bytes.len(), 0, "nothing left over");
     }
