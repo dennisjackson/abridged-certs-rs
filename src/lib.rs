@@ -6,4 +6,4 @@ pub mod tls;
 #[cfg(not(fuzzing))]
 mod tls;
 
-mod pass1;
+pub mod pass1;

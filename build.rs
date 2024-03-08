@@ -43,7 +43,6 @@ fn load_builtin_cert_mappings() -> impl Iterator<Item = (String, String, Vec<u8>
     file.read_to_string(&mut content)
         .expect("Failed to read file");
     let table: IDCertTable = serde_json::from_str(&content).expect("Failed to deserialize JSON");
-    // Should be binary hex strings. Compiler can handle the conversion. Don't need hex.
     table
         .data
         .into_iter()
