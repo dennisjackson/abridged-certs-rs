@@ -212,4 +212,26 @@ mod tests {
         assert_eq!(msg_bytes.len(), cert_bytes.len(), "nothing left over");
         assert_eq!(msg_bytes, cert_bytes);
     }
+
+}
+
+mod datatests {
+
+#[datatest::files("data/certificate_messages", {
+  input in r"^(.*)"
+})]
+fn sample_test(input: &[u8]) {
+  let mut bytes = bytes::Bytes::copy_from_slice(input);
+  let msg =
+  super::CertificateMessage::read_from_bytes(&mut bytes).expect("Should correctly decode");
+  assert_eq!(bytes.len(), 0, "nothing left over");
+
+  let msg_bytes: Vec<u8> = Vec::new();
+  let mut cursor = std::io::Cursor::new(msg_bytes);
+  msg.write_to_bytes(&mut cursor).expect("No errors");
+
+  let msg_bytes: bytes::Bytes = cursor.into_inner().into();
+  assert_eq!(msg_bytes.len(), input.len(), "nothing left over");
+  assert_eq!(msg_bytes, input);
+}
 }

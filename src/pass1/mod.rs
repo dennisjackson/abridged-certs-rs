@@ -176,3 +176,23 @@ mod tests {
         assert_eq!(cert_bytes, round_trip);
     }
 }
+
+mod datatests {
+
+    #[datatest::files("data/certificate_messages", {
+      input in r"^(.*)"
+    })]
+    fn sample_test(input: &[u8]) {
+      let cert_bytes = bytes::Bytes::copy_from_slice(input);
+      let c = crate::pass1::Compressor::new_builtin();
+      let out = c
+          .compress_to_bytes(cert_bytes.clone())
+          .expect("Compression succeeds");
+      let c = crate::pass1::Decompressor::new_builtin();
+      let round_trip = c
+          .decompress_to_bytes(out.clone().into())
+          .expect("Compression succeeds");
+      println!("Compressed {} to {}",cert_bytes.len(),out.len());
+      assert_eq!(cert_bytes, round_trip);
+    }
+}
