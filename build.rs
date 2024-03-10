@@ -32,7 +32,7 @@ fn wrapper(x: String) -> String {
 }
 
 fn load_builtin_cert_mappings() -> impl Iterator<Item = (String, String, Vec<u8>)> {
-    let json_path = Path::new("data/").join("data.json");
+    let json_path = Path::new("data/").join("pass1.json");
     let mut file = File::open(json_path).expect("Failed to open file");
     let mut content = String::new();
     file.read_to_string(&mut content)

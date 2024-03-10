@@ -111,18 +111,18 @@ impl CertificateEntry {
 }
 
 impl CertificateMessage {
-    pub fn read_from_bytes(value: &mut Bytes) -> Result<CertificateMessage, SimpleError> {
-        if value.len() < 4 {
-            return Err(SimpleError::new("Too small for handshake header"));
-        }
-        let msg_type = value.get_u8();
-        if msg_type != 11 {
-            return Err(SimpleError::new("Not a Certificate Message"));
-        }
-        let mut contents = read_tls_vec::<3>(value)?;
-        let request_context = read_tls_vec::<1>(&mut contents)?;
-        let mut certificate_field = read_tls_vec::<3>(&mut contents)?;
-        if !contents.is_empty() {
+    pub fn read_from_bytes(mut value: &mut Bytes) -> Result<CertificateMessage, SimpleError> {
+        // if value.len() < 4 {
+        //     return Err(SimpleError::new("Too small for handshake header"));
+        // }
+        // let msg_type = value.get_u8();
+        // if msg_type != 11 {
+        //     return Err(SimpleError::new("Not a Certificate Message"));
+        // }
+        // let mut contents = read_tls_vec::<3>(value)?;
+        let request_context = read_tls_vec::<1>(&mut value)?;
+        let mut certificate_field = read_tls_vec::<3>(&mut value)?;
+        if !value.is_empty() {
             return Err(SimpleError::new("Trailing data inside Certificate Message"));
         }
         let mut certificate_entries = Vec::with_capacity(5);
@@ -140,14 +140,14 @@ impl CertificateMessage {
         &self,
         writer: &mut impl Write,
     ) -> Result<(), Box<dyn std::error::Error>> {
-        write_tls_int::<1>(11, writer)?;
+        // write_tls_int::<1>(11, writer)?;
         let ce_size = self
             .certificate_entries
             .iter()
             .map(|x| x.get_size() as u64)
             .sum();
-        let total_size = ce_size + 1 + self.request_context.len() as u64 + 3;
-        write_tls_int::<3>(total_size, writer)?;
+        // let total_size = ce_size + 1 + self.request_context.len() as u64 + 3;
+        // write_tls_int::<3>(total_size, writer)?;
         write_tls_vec::<1>(&self.request_context, writer)?;
         write_tls_int::<3>(ce_size, writer)?;
         for ce in &self.certificate_entries {
@@ -162,7 +162,7 @@ mod tests {
     use super::CertificateMessage;
 
     const CERTMSG: &str = "
-        0b00032e0000032a0003253082032130820209a0030201020208155a92adc2048f90300d06092a86
+        0000032a0003253082032130820209a0030201020208155a92adc2048f90300d06092a86
         4886f70d01010b05003022310b300906035504061302555331133011060355040a130a4578616d70
         6c65204341301e170d3138313030353031333831375a170d3139313030353031333831375a302b31
         0b3009060355040613025553311c301a060355040313136578616d706c652e756c666865696d2e6e
