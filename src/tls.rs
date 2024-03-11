@@ -161,8 +161,9 @@ impl CertificateMessage {
 mod tests {
     use super::CertificateMessage;
 
+    // Added a single byte extension field
     const CERTMSG: &str = "
-        0000032a0003253082032130820209a0030201020208155a92adc2048f90300d06092a86
+        0000032b0003253082032130820209a0030201020208155a92adc2048f90300d06092a86
         4886f70d01010b05003022310b300906035504061302555331133011060355040a130a4578616d70
         6c65204341301e170d3138313030353031333831375a170d3139313030353031333831375a302b31
         0b3009060355040613025553311c301a060355040313136578616d706c652e756c666865696d2e6e
@@ -182,7 +183,7 @@ mod tests {
         209e667fce5ae2e4ac99c7c93818f8b2510722dfed97f32e3e9349d4c66c9ea6396d744462a06b42
         c6d5ba688eac3a017bddfc8e2cfcad27cb69d3ccdca280414465d3ae348ce0f34ab2fb9c61837131
         2b191041641c237f11a5d65c844f0404849938712b959ed685bc5c5dd645ed19909473402926dcb4
-        0e3469a15941e8e2cca84bb6084636a00000";
+        0e3469a15941e8e2cca84bb6084636a00001ff";
 
     #[test]
     fn happy_path() {
@@ -211,6 +212,16 @@ mod tests {
         let msg_bytes: bytes::Bytes = cursor.into_inner().into();
         assert_eq!(msg_bytes.len(), cert_bytes.len(), "nothing left over");
         assert_eq!(msg_bytes, cert_bytes);
+    }
+
+    #[test]
+    fn large_integers() {
+        let msg_bytes: Vec<u8> = Vec::new();
+        let mut cursor = std::io::Cursor::new(msg_bytes);
+        assert!(super::write_tls_int::<1>(u8::MAX as u64 + 1,&mut cursor).is_err());
+        assert!(super::write_tls_int::<2>(u16::MAX as u64 + 1,&mut cursor).is_err());
+        assert!(super::write_tls_int::<3>(2_u64.pow(24) + 1,&mut cursor).is_err());
+        assert!(super::write_tls_int::<4>(u32::MAX as u64 + 1,&mut cursor).is_err());
     }
 
 }
