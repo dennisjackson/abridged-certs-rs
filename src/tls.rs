@@ -4,38 +4,39 @@ use bytes::{Buf, Bytes};
 use simple_error::SimpleError;
 
 fn read_tls_vec<const WIDTH: u8>(value: &mut Bytes) -> Result<Bytes, SimpleError> {
-    debug_assert!(WIDTH <= 8, "Invalid width specified");
+    debug_assert!(WIDTH <= 4, "Invalid width specified");
     debug_assert!(usize::MAX as u128 <= u64::MAX as u128);
 
-    if value.len() < WIDTH as usize {
+    if value.len() < WIDTH.into() {
         return Err(SimpleError::new("Not enough bytes to read length field"));
     }
 
-    let len = value.get_uint(WIDTH as usize);
-    if (value.len() as u64) < len {
+    let len : usize = value.get_uint(WIDTH.into()).try_into().map_err(|_| SimpleError::new("Length too large"))?;
+
+    if value.len() < len {
         return Err(SimpleError::new("Length field longer than remaining bytes"));
     }
-    if len > usize::MAX as u64 {
-        return Err(SimpleError::new(
-            "Vec does not fit into memory on this platform",
-        ));
-    }
 
-    let vec = value.split_to(len as usize);
+
+    let vec = value.split_to(len);
     Ok(vec)
 }
 
 fn write_tls_int<const WIDTH: u8>(
-    size: u64,
+    size: u32,
     writer: &mut impl Write,
 ) -> Result<(), Box<dyn std::error::Error>> {
-    debug_assert!(WIDTH <= 4 && WIDTH > 0, "Invalid width specified");
-    let max_val = (8 * WIDTH) as u32;
-    if size > 2_u64.pow(max_val) - 1 {
-        return Err(Box::new(SimpleError::new("Length too large for Width")));
+    /* Pretty ugly. Fix. */
+    let u32_width = u32::BITS.div(8);
+    assert!(WIDTH <= 4 && WIDTH > 0, "Invalid width specified");
+    assert!(u32_width >= WIDTH.into());
+    let dropped_bytes: usize = (u32_width - Into::<u32>::into(WIDTH)).try_into()?;
+
+    let integer_bits : u32 = (8 * WIDTH).into();
+    if Into::<u64>::into(size) > 2_u64.pow(integer_bits) - 1 {
+        return Err(Box::new(SimpleError::new("Value too large for Integer")));
     }
 
-    let dropped_bytes: usize = (usize::BITS.div(8) - WIDTH as u32) as usize;
     let len_bytes = &size.to_be_bytes()[dropped_bytes..];
     writer.write_all(len_bytes)?;
     Ok(())
@@ -46,9 +47,10 @@ fn write_tls_vec<const WIDTH: u8>(
     writer: &mut impl Write,
 ) -> Result<(), Box<dyn std::error::Error>> {
     debug_assert!(WIDTH <= 4 && WIDTH > 0, "Invalid width specified");
-    debug_assert!(usize::MAX as u128 <= u64::MAX as u128);
 
-    write_tls_int::<WIDTH>(value.len() as u64, writer)?;
+    let len : u32 = value.len().try_into()?;
+
+    write_tls_int::<WIDTH>(len, writer)?;
     writer.write_all(value)?;
     Ok(())
 }
@@ -141,11 +143,11 @@ impl CertificateMessage {
         writer: &mut impl Write,
     ) -> Result<(), Box<dyn std::error::Error>> {
         // write_tls_int::<1>(11, writer)?;
-        let ce_size = self
+        let ce_size : u32 = self
             .certificate_entries
             .iter()
-            .map(|x| x.get_size() as u64)
-            .sum();
+            .map(|x| x.get_size())
+            .sum::<usize>().try_into()?;
         // let total_size = ce_size + 1 + self.request_context.len() as u64 + 3;
         // write_tls_int::<3>(total_size, writer)?;
         write_tls_vec::<1>(&self.request_context, writer)?;
@@ -218,10 +220,10 @@ mod tests {
     fn large_integers() {
         let msg_bytes: Vec<u8> = Vec::new();
         let mut cursor = std::io::Cursor::new(msg_bytes);
-        assert!(super::write_tls_int::<1>(u8::MAX as u64 + 1,&mut cursor).is_err());
-        assert!(super::write_tls_int::<2>(u16::MAX as u64 + 1,&mut cursor).is_err());
-        assert!(super::write_tls_int::<3>(2_u64.pow(24) + 1,&mut cursor).is_err());
-        assert!(super::write_tls_int::<4>(u32::MAX as u64 + 1,&mut cursor).is_err());
+        assert!(super::write_tls_int::<1>(u8::MAX as u32 + 1,&mut cursor).is_err());
+        assert!(super::write_tls_int::<2>(u16::MAX as u32 + 1,&mut cursor).is_err());
+        assert!(super::write_tls_int::<3>(2_u32.pow(24) + 1,&mut cursor).is_err());
+        assert!(!super::write_tls_int::<4>(u32::MAX as u32,&mut cursor).is_err());
     }
 
 }
