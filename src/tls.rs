@@ -11,12 +11,14 @@ fn read_tls_vec<const WIDTH: u8>(value: &mut Bytes) -> Result<Bytes, SimpleError
         return Err(SimpleError::new("Not enough bytes to read length field"));
     }
 
-    let len : usize = value.get_uint(WIDTH.into()).try_into().map_err(|_| SimpleError::new("Length too large"))?;
+    let len: usize = value
+        .get_uint(WIDTH.into())
+        .try_into()
+        .map_err(|_| SimpleError::new("Length too large"))?;
 
     if value.len() < len {
         return Err(SimpleError::new("Length field longer than remaining bytes"));
     }
-
 
     let vec = value.split_to(len);
     Ok(vec)
@@ -32,7 +34,7 @@ fn write_tls_int<const WIDTH: u8>(
     assert!(u32_width >= WIDTH.into());
     let dropped_bytes: usize = (u32_width - Into::<u32>::into(WIDTH)).try_into()?;
 
-    let integer_bits : u32 = (8 * WIDTH).into();
+    let integer_bits: u32 = (8 * WIDTH).into();
     if Into::<u64>::into(size) > 2_u64.pow(integer_bits) - 1 {
         return Err(Box::new(SimpleError::new("Value too large for Integer")));
     }
@@ -48,7 +50,7 @@ fn write_tls_vec<const WIDTH: u8>(
 ) -> Result<(), Box<dyn std::error::Error>> {
     debug_assert!(WIDTH <= 4 && WIDTH > 0, "Invalid width specified");
 
-    let len : u32 = value.len().try_into()?;
+    let len: u32 = value.len().try_into()?;
 
     write_tls_int::<WIDTH>(len, writer)?;
     writer.write_all(value)?;
@@ -113,17 +115,9 @@ impl CertificateEntry {
 }
 
 impl CertificateMessage {
-    pub fn read_from_bytes(mut value: &mut Bytes) -> Result<CertificateMessage, SimpleError> {
-        // if value.len() < 4 {
-        //     return Err(SimpleError::new("Too small for handshake header"));
-        // }
-        // let msg_type = value.get_u8();
-        // if msg_type != 11 {
-        //     return Err(SimpleError::new("Not a Certificate Message"));
-        // }
-        // let mut contents = read_tls_vec::<3>(value)?;
-        let request_context = read_tls_vec::<1>(&mut value)?;
-        let mut certificate_field = read_tls_vec::<3>(&mut value)?;
+    pub fn read_from_bytes(value: &mut Bytes) -> Result<CertificateMessage, SimpleError> {
+        let request_context = read_tls_vec::<1>(value)?;
+        let mut certificate_field = read_tls_vec::<3>(value)?;
         if !value.is_empty() {
             return Err(SimpleError::new("Trailing data inside Certificate Message"));
         }
@@ -142,14 +136,12 @@ impl CertificateMessage {
         &self,
         writer: &mut impl Write,
     ) -> Result<(), Box<dyn std::error::Error>> {
-        // write_tls_int::<1>(11, writer)?;
-        let ce_size : u32 = self
+        let ce_size: u32 = self
             .certificate_entries
             .iter()
             .map(|x| x.get_size())
-            .sum::<usize>().try_into()?;
-        // let total_size = ce_size + 1 + self.request_context.len() as u64 + 3;
-        // write_tls_int::<3>(total_size, writer)?;
+            .sum::<usize>()
+            .try_into()?;
         write_tls_vec::<1>(&self.request_context, writer)?;
         write_tls_int::<3>(ce_size, writer)?;
         for ce in &self.certificate_entries {
@@ -220,31 +212,30 @@ mod tests {
     fn large_integers() {
         let msg_bytes: Vec<u8> = Vec::new();
         let mut cursor = std::io::Cursor::new(msg_bytes);
-        assert!(super::write_tls_int::<1>(u8::MAX as u32 + 1,&mut cursor).is_err());
-        assert!(super::write_tls_int::<2>(u16::MAX as u32 + 1,&mut cursor).is_err());
-        assert!(super::write_tls_int::<3>(2_u32.pow(24) + 1,&mut cursor).is_err());
-        assert!(!super::write_tls_int::<4>(u32::MAX as u32,&mut cursor).is_err());
+        assert!(super::write_tls_int::<1>(u8::MAX as u32 + 1, &mut cursor).is_err());
+        assert!(super::write_tls_int::<2>(u16::MAX as u32 + 1, &mut cursor).is_err());
+        assert!(super::write_tls_int::<3>(2_u32.pow(24) + 1, &mut cursor).is_err());
+        assert!(super::write_tls_int::<4>(u32::MAX, &mut cursor).is_ok());
     }
-
 }
 
 mod datatests {
 
-#[datatest::files("data/certificate_messages", {
+    #[datatest::files("data/certificate_messages", {
   input in r"^(.*)"
 })]
-fn sample_test(input: &[u8]) {
-  let mut bytes = bytes::Bytes::copy_from_slice(input);
-  let msg =
-  super::CertificateMessage::read_from_bytes(&mut bytes).expect("Should correctly decode");
-  assert_eq!(bytes.len(), 0, "nothing left over");
+    fn sample_test(input: &[u8]) {
+        let mut bytes = bytes::Bytes::copy_from_slice(input);
+        let msg = super::CertificateMessage::read_from_bytes(&mut bytes)
+            .expect("Should correctly decode");
+        assert_eq!(bytes.len(), 0, "nothing left over");
 
-  let msg_bytes: Vec<u8> = Vec::new();
-  let mut cursor = std::io::Cursor::new(msg_bytes);
-  msg.write_to_bytes(&mut cursor).expect("No errors");
+        let msg_bytes: Vec<u8> = Vec::new();
+        let mut cursor = std::io::Cursor::new(msg_bytes);
+        msg.write_to_bytes(&mut cursor).expect("No errors");
 
-  let msg_bytes: bytes::Bytes = cursor.into_inner().into();
-  assert_eq!(msg_bytes.len(), input.len(), "nothing left over");
-  assert_eq!(msg_bytes, input);
-}
+        let msg_bytes: bytes::Bytes = cursor.into_inner().into();
+        assert_eq!(msg_bytes.len(), input.len(), "nothing left over");
+        assert_eq!(msg_bytes, input);
+    }
 }
