@@ -1,13 +1,11 @@
 use super::tls::{CertificateEntry, CertificateMessage};
-use bytes::{BufMut, Bytes, BytesMut};
+use bytes::{BufMut, Bytes};
 use std::io::Write;
-
-type CertIdentifier = Bytes;
 
 mod builtins;
 
-type IdFunc = fn(&Bytes) -> Option<CertIdentifier>;
-type CertFunc = fn(&CertIdentifier) -> Option<Bytes>;
+type IdFunc = fn(&[u8]) -> Option<&'static [u8]>;
+type CertFunc = fn(&[u8]) -> Option<&'static [u8]>;
 
 pub struct Compressor {
     lookup: IdFunc,
@@ -31,15 +29,15 @@ impl Compressor {
             (self.lookup)(cert),
             self::builtins::cert_to_identifier(cert)
         );
-        entry.data = (self.lookup)(cert).unwrap_or(entry.data);
+        entry.data = (self.lookup)(cert).map_or(entry.data,Bytes::from_static);
         entry
     }
 
     pub fn compress_to_bytes(
         &self,
-        cert_msg: Bytes,
-    ) -> Result<BytesMut, Box<dyn std::error::Error>> {
-        let output: BytesMut = BytesMut::with_capacity(cert_msg.len());
+        cert_msg: &[u8],
+    ) -> Result<Vec<u8>, Box<dyn std::error::Error>> {
+        let output = Vec::with_capacity(cert_msg.len());
         let mut writer = output.writer();
         self.compress(cert_msg, &mut writer)?;
         Ok(writer.into_inner())
@@ -47,9 +45,11 @@ impl Compressor {
 
     pub fn compress(
         &self,
-        mut cert_msg: Bytes,
+        cert_msg: &[u8],
         writer: &mut impl Write,
     ) -> Result<(), Box<dyn std::error::Error>> {
+        /* TODO: Why do we need ownership here? It would be nice just to reference the slice */
+        let mut cert_msg = Bytes::copy_from_slice(cert_msg);
         let mut cert_msg = CertificateMessage::read_from_bytes(&mut cert_msg)?;
         cert_msg.certificate_entries = cert_msg
             .certificate_entries
@@ -83,15 +83,15 @@ impl Decompressor {
             (self.lookup)(id_or_cert),
             self::builtins::id_to_cert(id_or_cert)
         );
-        entry.data = (self.lookup)(id_or_cert).unwrap_or(entry.data);
+        entry.data = (self.lookup)(id_or_cert).map_or(entry.data,Bytes::from_static);
         entry
     }
 
     pub fn decompress_to_bytes(
         &self,
-        compressed_msg: Bytes,
-    ) -> Result<BytesMut, Box<dyn std::error::Error>> {
-        let output: BytesMut = BytesMut::with_capacity(compressed_msg.len());
+        compressed_msg: &[u8],
+    ) -> Result<Vec<u8>, Box<dyn std::error::Error>> {
+        let output = Vec::with_capacity(compressed_msg.len());
         let mut writer = output.writer();
         self.decompress(compressed_msg, &mut writer)?;
         Ok(writer.into_inner())
@@ -99,9 +99,10 @@ impl Decompressor {
 
     pub fn decompress(
         &self,
-        mut compressed_msg: Bytes,
+        compressed_msg: &[u8],
         writer: &mut impl Write,
     ) -> Result<(), Box<dyn std::error::Error>> {
+        let mut compressed_msg = Bytes::copy_from_slice(compressed_msg);
         let mut cert_msg = CertificateMessage::read_from_bytes(&mut compressed_msg)?;
         cert_msg.certificate_entries = cert_msg
             .certificate_entries
@@ -145,10 +146,10 @@ mod tests {
         /* Borrowed from https://tls13.xargs.org/#server-certificate */
         let mut cert_hex: String = String::from(CERTMSG);
         cert_hex.retain(|x| !x.is_whitespace());
-        let cert_bytes: bytes::Bytes = hex::decode(cert_hex).unwrap().into();
+        let cert_bytes = hex::decode(cert_hex).unwrap();
         let c = Compressor::new_builtin();
         let out = c
-            .compress_to_bytes(cert_bytes.clone())
+            .compress_to_bytes(&cert_bytes)
             .expect("Compression succeeds");
         println!("Compressed to {} from {}", out.len(), cert_bytes.len());
     }
@@ -158,10 +159,10 @@ mod tests {
         /* Borrowed from https://tls13.xargs.org/#server-certificate */
         let mut cert_hex: String = String::from(CERTMSG);
         cert_hex.retain(|x| !x.is_whitespace());
-        let cert_bytes: bytes::Bytes = hex::decode(cert_hex).unwrap().into();
+        let cert_bytes = hex::decode(cert_hex).unwrap();
         let c = Decompressor::new_builtin();
         let out = c
-            .decompress_to_bytes(cert_bytes.clone())
+            .decompress_to_bytes(&cert_bytes)
             .expect("Compression succeeds");
         println!("Decompressed from {} from {}", out.len(), cert_bytes.len());
     }
@@ -170,14 +171,14 @@ mod tests {
     fn round_trip_happy() {
         let mut cert_hex: String = String::from(CERTMSG);
         cert_hex.retain(|x| !x.is_whitespace());
-        let cert_bytes: bytes::Bytes = hex::decode(cert_hex).unwrap().into();
+        let cert_bytes = hex::decode(cert_hex).unwrap();
         let c = Compressor::new_builtin();
         let out = c
-            .compress_to_bytes(cert_bytes.clone())
+            .compress_to_bytes(&cert_bytes)
             .expect("Compression succeeds");
         let c = Decompressor::new_builtin();
         let round_trip = c
-            .decompress_to_bytes(out.clone().into())
+            .decompress_to_bytes(&out)
             .expect("Compression succeeds");
         assert_eq!(cert_bytes, round_trip);
     }
@@ -192,11 +193,11 @@ mod datatests {
         let cert_bytes = bytes::Bytes::copy_from_slice(input);
         let c = crate::pass1::Compressor::new_builtin();
         let out = c
-            .compress_to_bytes(cert_bytes.clone())
+            .compress_to_bytes(input)
             .expect("Compression succeeds");
         let c = crate::pass1::Decompressor::new_builtin();
         let round_trip = c
-            .decompress_to_bytes(out.clone().into())
+            .decompress_to_bytes(&out)
             .expect("Compression succeeds");
         println!("Compressed {} to {}", cert_bytes.len(), out.len());
         assert_eq!(cert_bytes, round_trip);

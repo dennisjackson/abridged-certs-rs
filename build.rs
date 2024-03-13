@@ -19,7 +19,7 @@ fn hash(bytes: &[u8]) -> Vec<u8> {
     result_256.to_vec()
 }
 
-fn wrapper(x: String) -> String {
+fn wrapper(x: &str) -> String {
     let mut output = "b\"".to_string();
     for c in x.chars().array_chunks::<2>() {
         output.push('\\');
@@ -52,9 +52,9 @@ fn main() {
         dbg!(&fingerprint);
         id_to_cert.entry(
             hex::decode(id.clone()).expect("Hex Error").leak(),
-            &wrapper(cert),
+            &wrapper(&cert),
         );
-        hash_to_id.entry(fingerprint.leak(), &wrapper(id));
+        hash_to_id.entry(fingerprint.leak(), &wrapper(&id));
     }
 
     let path = Path::new(&env::var("OUT_DIR").unwrap()).join("builtin_tables.rs");

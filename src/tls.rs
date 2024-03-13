@@ -5,7 +5,6 @@ use simple_error::SimpleError;
 
 fn read_tls_vec<const WIDTH: u8>(value: &mut Bytes) -> Result<Bytes, SimpleError> {
     debug_assert!(WIDTH <= 4, "Invalid width specified");
-    debug_assert!(usize::MAX as u128 <= u64::MAX as u128);
 
     if value.len() < WIDTH.into() {
         return Err(SimpleError::new("Not enough bytes to read length field"));
@@ -139,7 +138,7 @@ impl CertificateMessage {
         let ce_size: u32 = self
             .certificate_entries
             .iter()
-            .map(|x| x.get_size())
+            .map(CertificateEntry::get_size)
             .sum::<usize>()
             .try_into()?;
         write_tls_vec::<1>(&self.request_context, writer)?;
