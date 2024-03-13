@@ -25,10 +25,13 @@ impl Compressor {
     }
 
     fn map_or_preserve_cert_entry(&self, mut entry: CertificateEntry) -> CertificateEntry {
-        entry.data = match (self.lookup)(&entry.data) {
-            Some(id) => id,
-            None => entry.data,
-        };
+        let cert = &entry.data;
+        /* Debug builds validate that the user supplied function is correct */
+        debug_assert_eq!(
+            (self.lookup)(cert),
+            self::builtins::cert_to_identifier(cert)
+        );
+        entry.data = (self.lookup)(cert).unwrap_or(entry.data);
         entry
     }
 
@@ -74,10 +77,13 @@ impl Decompressor {
     }
 
     fn map_identifier(&self, mut entry: CertificateEntry) -> CertificateEntry {
-        entry.data = match (self.lookup)(&entry.data) {
-            Some(cert_data) => cert_data,
-            None => entry.data,
-        };
+        let id_or_cert = &entry.data;
+        /* Debug builds validate that the user supplied function is correct */
+        debug_assert_eq!(
+            (self.lookup)(id_or_cert),
+            self::builtins::id_to_cert(id_or_cert)
+        );
+        entry.data = (self.lookup)(id_or_cert).unwrap_or(entry.data);
         entry
     }
 
