@@ -20,3 +20,26 @@ pub fn cert_to_identifier(cert: &Bytes) -> Option<CertIdentifier> {
 pub fn id_to_cert(id: &CertIdentifier) -> Option<Bytes> {
     ID_TO_CERT.get(id).map(|x| Bytes::from_static(x))
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    /* These tests check for bijectivity */
+
+    #[test]
+    fn hashes_entries_agree() {
+        for (h, id) in HASH_TO_ID.entries() {
+            let cert = id_to_cert(&Bytes::from(*id)).expect("Should be present");
+            assert_eq!(hash(&cert), *h);
+        }
+    }
+
+    #[test]
+    fn id_entries_agree() {
+        for (id, cert) in ID_TO_CERT.entries() {
+            let lookup = cert_to_identifier(&Bytes::from(*cert)).expect("Should be present");
+            assert_eq!(*id, lookup);
+        }
+    }
+}
