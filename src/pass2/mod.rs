@@ -1,81 +1,103 @@
-use std::io::{Read, Write};
-use bytes::BufMut;
 use simple_error::SimpleError;
+use std::io::{Read, Write};
 
 mod builtins;
 
-const ZSTD_COMPRESSION_LEVEL : i32 = 20;
-const ZSTD_WINDOW_SIZE : u32 = 24;
+const ZSTD_COMPRESSION_LEVEL: i32 = 20;
+const ZSTD_WINDOW_SIZE: u32 = 24;
 pub struct Compressor<'a> {
-    compDict : zstd::dict::EncoderDictionary<'a>
+    comp_dict: zstd::dict::EncoderDictionary<'a>,
 }
 
 impl<'a> Compressor<'a> {
-    pub fn new(dict : &[u8]) -> Self {
-        Compressor { compDict : zstd::dict::EncoderDictionary::copy(dict,ZSTD_COMPRESSION_LEVEL)}
+    pub fn new(dict: &[u8]) -> Self {
+        Compressor {
+            comp_dict: zstd::dict::EncoderDictionary::copy(dict, ZSTD_COMPRESSION_LEVEL),
+        }
     }
 
     pub fn new_from_builtin() -> Self {
         Self::new(builtins::BUILTIN_DICT)
     }
 
-    pub fn compress<T : Write>(&self, msg: &[u8], output : T) -> Result<T, Box<dyn std::error::Error>>{
-        let mut encoder = zstd::Encoder::with_prepared_dictionary(output, &self.compDict)?;
-        encoder.set_pledged_src_size(msg.len().try_into().ok()).expect("Error setting size");
-        encoder.include_checksum(false).expect("Error disabling checksum");
+    pub fn compress<T: Write>(
+        &self,
+        msg: &[u8],
+        output: T,
+    ) -> Result<T, Box<dyn std::error::Error>> {
+        let mut encoder = zstd::Encoder::with_prepared_dictionary(output, &self.comp_dict)?;
+        encoder
+            .set_pledged_src_size(msg.len().try_into().ok())
+            .expect("Error setting size");
+        encoder
+            .include_checksum(false)
+            .expect("Error disabling checksum");
         #[cfg(not(debug))]
         {
-            encoder.include_dictid(false).expect("Error disabling dictid");
+            encoder
+                .include_dictid(false)
+                .expect("Error disabling dictid");
         }
-        encoder.include_contentsize(false).expect("Error setting content size");
-        encoder.long_distance_matching(true).expect("Error using long distance matching");
-        encoder.window_log(ZSTD_WINDOW_SIZE).expect("Error setting window log");
+        encoder
+            .include_contentsize(false)
+            .expect("Error setting content size");
+        encoder
+            .long_distance_matching(true)
+            .expect("Error using long distance matching");
+        encoder
+            .window_log(ZSTD_WINDOW_SIZE)
+            .expect("Error setting window log");
         encoder.write_all(msg)?;
         encoder.finish().or(Err(Box::new(SimpleError::new("UhOh"))))
     }
 
-    pub fn compress_to_bytes(&self, msg: &[u8]) -> Result<Vec<u8>, Box<dyn std::error::Error>>{
+    pub fn compress_to_bytes(&self, msg: &[u8]) -> Result<Vec<u8>, Box<dyn std::error::Error>> {
         let output = Vec::with_capacity(msg.len());
         let mut writer = std::io::Cursor::new(output);
         writer = self.compress(msg, writer)?;
         Ok(writer.into_inner())
     }
-
 }
 
 pub struct Decompressor<'a> {
-    decompDict : zstd::dict::DecoderDictionary<'a>
+    decomp_dict: zstd::dict::DecoderDictionary<'a>,
 }
 
 impl<'a> Decompressor<'a> {
-    pub fn new(dict :&[u8]) -> Self {
-        Decompressor { decompDict : zstd::dict::DecoderDictionary::copy(dict)}
+    pub fn new(dict: &[u8]) -> Self {
+        Decompressor {
+            decomp_dict: zstd::dict::DecoderDictionary::copy(dict),
+        }
     }
-
 
     pub fn new_from_builtin() -> Self {
         Self::new(builtins::BUILTIN_DICT)
     }
 
-    pub fn decompress_to_bytes(&self, comp_msg :&[u8], max_size : u32) -> Result<Vec<u8>, Box<dyn std::error::Error>> {
+    pub fn decompress_to_bytes(
+        &self,
+        comp_msg: &[u8],
+        max_size: u32,
+    ) -> Result<Vec<u8>, Box<dyn std::error::Error>> {
         let reader = std::io::Cursor::new(comp_msg);
-        let mut decoder = zstd::Decoder::with_prepared_dictionary(reader, &self.decompDict)?;
-        decoder.window_log_max(ZSTD_WINDOW_SIZE).expect("Error setting window size");
+        let mut decoder = zstd::Decoder::with_prepared_dictionary(reader, &self.decomp_dict)?;
+        decoder
+            .window_log_max(ZSTD_WINDOW_SIZE)
+            .expect("Error setting window size");
         //let mut output_buf = Vec::with_capacity(max_size.try_into().expect("Error converting"));
-        let mut output_buf = vec![0;max_size as usize];
+        let mut output_buf = vec![0; max_size as usize];
         /* This could block and we might not get all our data... TODO */
         let size = decoder.read(&mut output_buf)?;
         output_buf.truncate(size);
         output_buf.shrink_to(size);
-         let mut overflow = vec![0;1];
+        let mut overflow = vec![0; 1];
         // TODO: Probably better to have this read to end and have write be a length limited writer.
         // Since we need it for pass 1 anyway
-        if let Ok(_) = decoder.read_exact(&mut overflow) {
-             return Err(Box::new(SimpleError::new("Over long data!")));
-         }
+        if decoder.read_exact(&mut overflow).is_ok() {
+            return Err(Box::new(SimpleError::new("Over long data!")));
+        }
         Ok(output_buf)
     }
-
 }
 
 #[cfg(test)]
@@ -129,11 +151,10 @@ mod tests {
             .expect("Compression succeeds");
         let c = Decompressor::new_from_builtin();
         let round_trip = c
-            .decompress_to_bytes(&out,16000)
+            .decompress_to_bytes(&out, 16000)
             .expect("Compression succeeds");
         assert_eq!(cert_bytes, round_trip);
     }
-
 
     #[test]
     fn size_limits() {
@@ -146,7 +167,7 @@ mod tests {
             .expect("Compression succeeds");
         let c = Decompressor::new_from_builtin();
         let _ = c
-            .decompress_to_bytes(&out,100)
+            .decompress_to_bytes(&out, 100)
             .expect_err("Shouldn't be enough space!");
     }
 }
@@ -160,12 +181,10 @@ mod datatests {
     fn sample_test(input: &[u8]) {
         let cert_bytes = bytes::Bytes::copy_from_slice(input);
         let c = crate::pass2::Compressor::new_from_builtin();
-        let out = c
-            .compress_to_bytes(input)
-            .expect("Compression succeeds");
+        let out = c.compress_to_bytes(input).expect("Compression succeeds");
         let c = crate::pass2::Decompressor::new_from_builtin();
         let round_trip = c
-            .decompress_to_bytes(&out,16000)
+            .decompress_to_bytes(&out, 16000)
             .expect("Decompression succeeds");
         println!("Compressed {} to {}", cert_bytes.len(), out.len());
         assert_eq!(cert_bytes, round_trip);

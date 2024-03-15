@@ -2,8 +2,6 @@
 #![feature(custom_test_frameworks)]
 #![test_runner(datatest::runner)]
 
-use std::io::Write;
-
 /* Expose internal functions to fuzzer */
 #[cfg(fuzzing)]
 pub mod tls;
@@ -13,28 +11,30 @@ mod tls;
 pub mod pass1;
 pub mod pass2;
 
-
 pub struct Compressor<'a> {
-    p1 : pass1::Compressor,
-    p2 : pass2::Compressor<'a>,
+    p1: pass1::Compressor,
+    p2: pass2::Compressor<'a>,
 }
 
 impl<'a> Compressor<'a> {
-    pub fn new(p1lookup : pass1::IdFunc, p2Dict : &[u8]) -> Self {
+    pub fn new(p1lookup: pass1::IdFunc, p2_dict: &[u8]) -> Self {
         Compressor {
-            p1 : pass1::Compressor::new(p1lookup),
-            p2 : pass2::Compressor::new(p2Dict),
+            p1: pass1::Compressor::new(p1lookup),
+            p2: pass2::Compressor::new(p2_dict),
         }
     }
 
     pub fn new_from_builtin() -> Self {
         Compressor {
-            p1 : pass1::Compressor::new_builtin(),
-            p2 : pass2::Compressor::new_from_builtin(),
+            p1: pass1::Compressor::new_builtin(),
+            p2: pass2::Compressor::new_from_builtin(),
         }
     }
 
-    pub fn compress_to_bytes(&self, cert_msg : &[u8]) -> Result<Vec<u8>, Box<dyn std::error::Error>> {
+    pub fn compress_to_bytes(
+        &self,
+        cert_msg: &[u8],
+    ) -> Result<Vec<u8>, Box<dyn std::error::Error>> {
         let p1 = self.p1.compress_to_bytes(cert_msg)?;
         let p2 = self.p2.compress_to_bytes(&p1)?;
         Ok(p2)
@@ -42,26 +42,30 @@ impl<'a> Compressor<'a> {
 }
 
 pub struct Decompressor<'a> {
-    p1 : pass1::Decompressor,
-    p2 : pass2::Decompressor<'a>,
+    p1: pass1::Decompressor,
+    p2: pass2::Decompressor<'a>,
 }
 
 impl<'a> Decompressor<'a> {
-    pub fn new(p1lookup : pass1::IdFunc, p2Dict : &[u8]) -> Self {
+    pub fn new(p1_lookup: pass1::CertFunc, p2_dict: &[u8]) -> Self {
         Decompressor {
-            p1 : pass1::Decompressor::new(p1lookup),
-            p2 : pass2::Decompressor::new(p2Dict),
+            p1: pass1::Decompressor::new(p1_lookup),
+            p2: pass2::Decompressor::new(p2_dict),
         }
     }
 
     pub fn new_from_builtin() -> Self {
         Decompressor {
-            p1 : pass1::Decompressor::new_builtin(),
-            p2 : pass2::Decompressor::new_from_builtin(),
+            p1: pass1::Decompressor::new_builtin(),
+            p2: pass2::Decompressor::new_from_builtin(),
         }
     }
 
-    pub fn decompress_to_bytes(&self, comp_msg : &[u8], max_size : u32) -> Result<Vec<u8>, Box<dyn std::error::Error>> {
+    pub fn decompress_to_bytes(
+        &self,
+        comp_msg: &[u8],
+        max_size: u32,
+    ) -> Result<Vec<u8>, Box<dyn std::error::Error>> {
         let p2 = self.p2.decompress_to_bytes(comp_msg, max_size)?;
         // TODO: Inefficient and needs the size limit enforcing
         let p1 = self.p1.decompress_to_bytes(&p2)?;
@@ -120,11 +124,10 @@ mod tests {
             .expect("Compression succeeds");
         let c = Decompressor::new_from_builtin();
         let round_trip = c
-            .decompress_to_bytes(&out,16000)
+            .decompress_to_bytes(&out, 16000)
             .expect("Compression succeeds");
         assert_eq!(cert_bytes, round_trip);
     }
-
 
     #[test]
     fn size_limits() {
@@ -137,7 +140,7 @@ mod tests {
             .expect("Compression succeeds");
         let c = Decompressor::new_from_builtin();
         let _ = c
-            .decompress_to_bytes(&out,100)
+            .decompress_to_bytes(&out, 100)
             .expect_err("Shouldn't be enough space!");
     }
 }
@@ -150,12 +153,10 @@ mod datatests {
     fn sample_test(input: &[u8]) {
         let cert_bytes = bytes::Bytes::copy_from_slice(input);
         let c = crate::Compressor::new_from_builtin();
-        let out = c
-            .compress_to_bytes(input)
-            .expect("Compression succeeds");
+        let out = c.compress_to_bytes(input).expect("Compression succeeds");
         let c = crate::Decompressor::new_from_builtin();
         let round_trip = c
-            .decompress_to_bytes(&out,16000)
+            .decompress_to_bytes(&out, 16000)
             .expect("Decompression succeeds");
         println!("Compressed {} to {}", cert_bytes.len(), out.len());
         assert_eq!(cert_bytes, round_trip);

@@ -8,7 +8,7 @@ fn hash(bytes: &[u8]) -> [u8; 32] {
     result_256
 }
 
-pub fn cert_to_identifier(cert: &[u8])  -> Option<&'static [u8]> {
+pub fn cert_to_identifier(cert: &[u8]) -> Option<&'static [u8]> {
     let h = hash(cert);
     HASH_TO_ID.get(&h).copied()
 }

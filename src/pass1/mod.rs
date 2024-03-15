@@ -29,7 +29,7 @@ impl Compressor {
             (self.lookup)(cert),
             self::builtins::cert_to_identifier(cert)
         );
-        entry.data = (self.lookup)(cert).map_or(entry.data,Bytes::from_static);
+        entry.data = (self.lookup)(cert).map_or(entry.data, Bytes::from_static);
         entry
     }
 
@@ -83,7 +83,7 @@ impl Decompressor {
             (self.lookup)(id_or_cert),
             self::builtins::id_to_cert(id_or_cert)
         );
-        entry.data = (self.lookup)(id_or_cert).map_or(entry.data,Bytes::from_static);
+        entry.data = (self.lookup)(id_or_cert).map_or(entry.data, Bytes::from_static);
         entry
     }
 
@@ -178,9 +178,7 @@ mod tests {
             .compress_to_bytes(&cert_bytes)
             .expect("Compression succeeds");
         let c = Decompressor::new_builtin();
-        let round_trip = c
-            .decompress_to_bytes(&out)
-            .expect("Compression succeeds");
+        let round_trip = c.decompress_to_bytes(&out).expect("Compression succeeds");
         assert_eq!(cert_bytes, round_trip);
     }
 }
@@ -194,13 +192,9 @@ mod datatests {
     fn sample_test(input: &[u8]) {
         let cert_bytes = bytes::Bytes::copy_from_slice(input);
         let c = crate::pass1::Compressor::new_builtin();
-        let out = c
-            .compress_to_bytes(input)
-            .expect("Compression succeeds");
+        let out = c.compress_to_bytes(input).expect("Compression succeeds");
         let c = crate::pass1::Decompressor::new_builtin();
-        let round_trip = c
-            .decompress_to_bytes(&out)
-            .expect("Compression succeeds");
+        let round_trip = c.decompress_to_bytes(&out).expect("Compression succeeds");
         println!("Compressed {} to {}", cert_bytes.len(), out.len());
         assert_eq!(cert_bytes, round_trip);
     }
