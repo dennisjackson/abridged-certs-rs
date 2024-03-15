@@ -1,0 +1,289 @@
+
+# cargo-vet imports lock
+
+[[publisher.itoa]]
+version = "1.0.10"
+when = "2023-12-09"
+user-id = 3618
+user-login = "dtolnay"
+user-name = "David Tolnay"
+
+[[publisher.memchr]]
+version = "2.7.1"
+when = "2023-12-28"
+user-id = 189
+user-login = "BurntSushi"
+user-name = "Andrew Gallant"
+
+[[publisher.phf]]
+version = "0.11.2"
+when = "2023-06-24"
+user-id = 51017
+user-login = "JohnTitor"
+user-name = "Yuki Okushi"
+
+[[publisher.phf_codegen]]
+version = "0.11.2"
+when = "2023-06-24"
+user-id = 51017
+user-login = "JohnTitor"
+user-name = "Yuki Okushi"
+
+[[publisher.phf_generator]]
+version = "0.11.2"
+when = "2023-06-24"
+user-id = 51017
+user-login = "JohnTitor"
+user-name = "Yuki Okushi"
+
+[[publisher.proc-macro2]]
+version = "1.0.78"
+when = "2024-01-21"
+user-id = 3618
+user-login = "dtolnay"
+user-name = "David Tolnay"
+
+[[publisher.ryu]]
+version = "1.0.17"
+when = "2024-02-19"
+user-id = 3618
+user-login = "dtolnay"
+user-name = "David Tolnay"
+
+[[publisher.serde_json]]
+version = "1.0.114"
+when = "2024-02-20"
+user-id = 3618
+user-login = "dtolnay"
+user-name = "David Tolnay"
+
+[[publisher.serde_yaml]]
+version = "0.9.32"
+when = "2024-02-19"
+user-id = 3618
+user-login = "dtolnay"
+user-name = "David Tolnay"
+
+[[publisher.syn]]
+version = "2.0.52"
+when = "2024-02-28"
+user-id = 3618
+user-login = "dtolnay"
+user-name = "David Tolnay"
+
+[[publisher.unsafe-libyaml]]
+version = "0.2.10"
+when = "2023-12-14"
+user-id = 3618
+user-login = "dtolnay"
+user-name = "David Tolnay"
+
+[[publisher.walkdir]]
+version = "2.5.0"
+when = "2024-03-01"
+user-id = 189
+user-login = "BurntSushi"
+user-name = "Andrew Gallant"
+
+[[audits.google.audits.aho-corasick]]
+who = "danakj@chromium.org"
+criteria = "safe-to-run"
+version = "1.1.2"
+notes = """
+Reviewed in https://crrev.com/c/5171063
+
+Previously reviewed during security review and the audit is grandparented in.
+"""
+aggregated-from = "https://chromium.googlesource.com/chromium/src/+/main/third_party/rust/chromium_crates_io/supply-chain/audits.toml?format=TEXT"
+
+[[audits.google.audits.equivalent]]
+who = "George Burgess IV <gbiv@google.com>"
+criteria = "safe-to-deploy"
+version = "1.0.1"
+aggregated-from = "https://chromium.googlesource.com/chromiumos/third_party/rust_crates/+/refs/heads/main/cargo-vet/audits.toml?format=TEXT"
+
+[[audits.google.audits.hashbrown]]
+who = "Nicholas Bishop <nicholasbishop@google.com>"
+criteria = "safe-to-run"
+version = "0.13.2"
+aggregated-from = "https://chromium.googlesource.com/chromiumos/third_party/rust_crates/+/refs/heads/main/cargo-vet/audits.toml?format=TEXT"
+
+[[audits.google.audits.hashbrown]]
+who = "George Burgess IV <gbiv@google.com>"
+criteria = "safe-to-run"
+delta = "0.13.2 -> 0.14.3"
+aggregated-from = "https://chromium.googlesource.com/chromiumos/third_party/rust_crates/+/refs/heads/main/cargo-vet/audits.toml?format=TEXT"
+
+[[audits.google.audits.quote]]
+who = "Lukasz Anforowicz <lukasza@chromium.org>"
+criteria = "safe-to-deploy"
+version = "1.0.35"
+notes = """
+Grepped for \"unsafe\", \"crypt\", \"cipher\", \"fs\", \"net\" - there were no hits
+(except for benign \"net\" hit in tests and \"fs\" hit in README.md)
+"""
+aggregated-from = "https://chromium.googlesource.com/chromium/src/+/main/third_party/rust/chromium_crates_io/supply-chain/audits.toml?format=TEXT"
+
+[[audits.google.audits.regex]]
+who = "danakj@chromium.org"
+criteria = "safe-to-run"
+version = "1.10.2"
+notes = """
+Reviewed in https://crrev.com/c/5171063
+
+Previously reviewed during security review and the audit is grandparented in.
+"""
+aggregated-from = "https://chromium.googlesource.com/chromium/src/+/main/third_party/rust/chromium_crates_io/supply-chain/audits.toml?format=TEXT"
+
+[[audits.google.audits.regex]]
+who = "Lukasz Anforowicz <lukasza@chromium.org>"
+criteria = "safe-to-run"
+delta = "1.10.2 -> 1.10.3"
+aggregated-from = "https://chromium.googlesource.com/chromium/src/+/main/third_party/rust/chromium_crates_io/supply-chain/audits.toml?format=TEXT"
+
+[[audits.google.audits.regex-automata]]
+who = "danakj@chromium.org"
+criteria = "safe-to-run"
+version = "0.4.3"
+notes = """
+Reviewed in https://crrev.com/c/5171063
+
+Previously reviewed during security review and the audit is grandparented in.
+"""
+aggregated-from = "https://chromium.googlesource.com/chromium/src/+/main/third_party/rust/chromium_crates_io/supply-chain/audits.toml?format=TEXT"
+
+[[audits.google.audits.regex-automata]]
+who = "Lukasz Anforowicz <lukasza@chromium.org>"
+criteria = "safe-to-run"
+delta = "0.4.3 -> 0.4.5"
+aggregated-from = "https://chromium.googlesource.com/chromium/src/+/main/third_party/rust/chromium_crates_io/supply-chain/audits.toml?format=TEXT"
+
+[[audits.google.audits.regex-automata]]
+who = "danakj <danakj@chromium.org>"
+criteria = "safe-to-run"
+delta = "0.4.5 -> 0.4.6"
+notes = "Reviewed in https://crrev.com/c/5362200"
+aggregated-from = "https://chromium.googlesource.com/chromium/src/+/main/third_party/rust/chromium_crates_io/supply-chain/audits.toml?format=TEXT"
+
+[[audits.google.audits.regex-syntax]]
+who = "danakj@chromium.org"
+criteria = "safe-to-run"
+version = "0.8.2"
+notes = """
+Reviewed in https://crrev.com/c/5171063
+
+Previously reviewed during security review and the audit is grandparented in.
+"""
+aggregated-from = "https://chromium.googlesource.com/chromium/src/+/main/third_party/rust/chromium_crates_io/supply-chain/audits.toml?format=TEXT"
+
+[[audits.google.audits.same-file]]
+who = "Android Legacy"
+criteria = "safe-to-run"
+version = "1.0.6"
+aggregated-from = "https://chromium.googlesource.com/chromiumos/third_party/rust_crates/+/refs/heads/main/cargo-vet/audits.toml?format=TEXT"
+
+[[audits.google.audits.serde]]
+who = "Lukasz Anforowicz <lukasza@chromium.org>"
+criteria = "safe-to-deploy"
+version = "1.0.197"
+notes = """
+Grepped for `-i cipher`, `-i crypto`, `'\bfs\b'`, `'\bnet\b'`, `'\bunsafe\b'`.
+
+There were some hits for `net`, but they were related to serialization and
+not actually opening any connections or anything like that.
+
+There were 2 hits of `unsafe` when grepping:
+* In `fn as_str` in `impl Buf`
+* In `fn serialize` in `impl Serialize for net::Ipv4Addr`
+
+Unsafe review comments can be found in https://crrev.com/c/5350573/2 (this
+review also covered `serde_json_lenient`).
+
+Version 1.0.130 of the crate has been added to Chromium in
+https://crrev.com/c/3265545.  The CL description contains a link to a
+(Google-internal, sorry) document with a mini security review.
+"""
+aggregated-from = "https://chromium.googlesource.com/chromium/src/+/main/third_party/rust/chromium_crates_io/supply-chain/audits.toml?format=TEXT"
+
+[[audits.google.audits.serde_derive]]
+who = "Lukasz Anforowicz <lukasza@chromium.org>"
+criteria = "safe-to-deploy"
+version = "1.0.197"
+notes = "Grepped for \"unsafe\", \"crypt\", \"cipher\", \"fs\", \"net\" - there were no hits"
+aggregated-from = "https://chromium.googlesource.com/chromium/src/+/main/third_party/rust/chromium_crates_io/supply-chain/audits.toml?format=TEXT"
+
+[[audits.google.audits.unicode-ident]]
+who = "Lukasz Anforowicz <lukasza@chromium.org>"
+criteria = "safe-to-deploy"
+version = "1.0.12"
+notes = '''
+I grepped for \"crypt\", \"cipher\", \"fs\", \"net\" - there were no hits.
+
+All two functions from the public API of this crate use `unsafe` to avoid bound
+checks for an array access.  Cross-module analysis shows that the offsets can
+be statically proven to be within array bounds.  More details can be found in
+the unsafe review CL at https://crrev.com/c/5350386.
+
+This crate has been added to Chromium in https://crrev.com/c/3891618.
+'''
+aggregated-from = "https://chromium.googlesource.com/chromium/src/+/main/third_party/rust/chromium_crates_io/supply-chain/audits.toml?format=TEXT"
+
+[[audits.google.audits.version_check]]
+who = "George Burgess IV <gbiv@google.com>"
+criteria = "safe-to-deploy"
+version = "0.9.4"
+aggregated-from = "https://chromium.googlesource.com/chromiumos/third_party/rust_crates/+/refs/heads/main/cargo-vet/audits.toml?format=TEXT"
+
+[[audits.google.audits.winapi]]
+who = "danakj@chromium.org"
+criteria = "safe-to-run"
+version = "0.3.9"
+notes = """
+Reviewed in https://crrev.com/c/5171063
+
+Previously reviewed during security review and the audit is grandparented in.
+"""
+aggregated-from = "https://chromium.googlesource.com/chromium/src/+/main/third_party/rust/chromium_crates_io/supply-chain/audits.toml?format=TEXT"
+
+[[audits.google.audits.winapi-util]]
+who = "danakj@chromium.org"
+criteria = "safe-to-run"
+version = "0.1.6"
+notes = """
+Reviewed in https://crrev.com/c/5171063
+
+Previously reviewed during security review and the audit is grandparented in.
+"""
+aggregated-from = "https://chromium.googlesource.com/chromium/src/+/main/third_party/rust/chromium_crates_io/supply-chain/audits.toml?format=TEXT"
+
+[[audits.isrg.audits.rand_core]]
+who = "David Cook <dcook@divviup.org>"
+criteria = "safe-to-deploy"
+version = "0.6.3"
+
+[[audits.mozilla.audits.hex]]
+who = "Simon Friedberger <simon@mozilla.com>"
+criteria = "safe-to-deploy"
+version = "0.4.3"
+aggregated-from = "https://hg.mozilla.org/mozilla-central/raw-file/tip/supply-chain/audits.toml"
+
+[[audits.mozilla.audits.linked-hash-map]]
+who = "Aria Beingessner <a.beingessner@gmail.com>"
+criteria = "safe-to-deploy"
+version = "0.5.4"
+notes = "I own this crate (I am contain-rs) and 0.5.4 passes miri. This code is very old and used by lots of people, so I'm pretty confident in it, even though it's in maintenance-mode and missing some nice-to-have APIs."
+aggregated-from = "https://hg.mozilla.org/mozilla-central/raw-file/tip/supply-chain/audits.toml"
+
+[[audits.mozilla.audits.linked-hash-map]]
+who = "Mike Hommey <mh+mozilla@glandium.org>"
+criteria = "safe-to-run"
+delta = "0.5.4 -> 0.5.6"
+aggregated-from = "https://hg.mozilla.org/mozilla-central/raw-file/tip/supply-chain/audits.toml"
+
+[[audits.mozilla.audits.rand_core]]
+who = "Mike Hommey <mh+mozilla@glandium.org>"
+criteria = "safe-to-deploy"
+delta = "0.6.3 -> 0.6.4"
+aggregated-from = "https://hg.mozilla.org/mozilla-central/raw-file/tip/supply-chain/audits.toml"
+
+[audits.zcash.audits]
