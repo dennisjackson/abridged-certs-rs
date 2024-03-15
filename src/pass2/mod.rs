@@ -129,6 +129,22 @@ mod tests {
             .expect("Compression succeeds");
         assert_eq!(cert_bytes, round_trip);
     }
+
+
+    #[test]
+    fn size_limts() {
+        let mut cert_hex: String = String::from(CERTMSG);
+        cert_hex.retain(|x| !x.is_whitespace());
+        let cert_bytes = hex::decode(cert_hex).unwrap();
+        let c = Compressor::new_from_builtin();
+        let out = c
+            .compress_to_bytes(&cert_bytes)
+            .expect("Compression succeeds");
+        let c = Decompressor::new_from_builtin();
+        let _ = c
+            .decompress_to_bytes(&out,100)
+            .expect_err("Shouldn't be enough space!");
+    }
 }
 
 mod datatests {
