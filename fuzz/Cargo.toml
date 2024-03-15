@@ -26,3 +26,9 @@ name = "parse_cert"
 path = "fuzz_targets/parse_cert.rs"
 test = false
 doc = false
+
+[[bin]]
+name = "pass2_decomp"
+path = "fuzz_targets/pass2_decomp.rs"
+test = false
+doc = false
