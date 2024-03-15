@@ -61,14 +61,18 @@ impl<'a> Decompressor<'a> {
         let reader = std::io::Cursor::new(comp_msg);
         let mut decoder = zstd::Decoder::with_prepared_dictionary(reader, &self.decompDict)?;
         decoder.window_log_max(ZSTD_WINDOW_SIZE).expect("Error setting window size");
-        let mut output_buf = Vec::with_capacity(max_size.try_into().expect("Error converting"));
-        decoder.read_to_end(&mut output_buf)?;
-        // let mut overflow = Vec::with_capacity(1);
+        //let mut output_buf = Vec::with_capacity(max_size.try_into().expect("Error converting"));
+        let mut output_buf = vec![0;max_size as usize];
+        /* This could block and we might not get all our data... TODO */
+        let size = decoder.read(&mut output_buf)?;
+        output_buf.truncate(size);
+        output_buf.shrink_to(size);
+         let mut overflow = vec![0;1];
         // TODO: Probably better to have this read to end and have write be a length limited writer.
         // Since we need it for pass 1 anyway
-        // if let Ok(_) = decoder.read_exact(&mut overflow) {
-        //     return Err(Box::new(SimpleError::new("Over long data!")));
-        // }
+        if let Ok(_) = decoder.read_exact(&mut overflow) {
+             return Err(Box::new(SimpleError::new("Over long data!")));
+         }
         Ok(output_buf)
     }
 

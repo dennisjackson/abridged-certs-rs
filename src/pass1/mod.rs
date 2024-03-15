@@ -4,8 +4,8 @@ use std::io::Write;
 
 mod builtins;
 
-type IdFunc = fn(&[u8]) -> Option<&'static [u8]>;
-type CertFunc = fn(&[u8]) -> Option<&'static [u8]>;
+pub type IdFunc = fn(&[u8]) -> Option<&'static [u8]>;
+pub type CertFunc = fn(&[u8]) -> Option<&'static [u8]>;
 
 pub struct Compressor {
     lookup: IdFunc,
@@ -97,6 +97,7 @@ impl Decompressor {
         Ok(writer.into_inner())
     }
 
+    /* TODO: This needs to support a maximum size */
     pub fn decompress(
         &self,
         compressed_msg: &[u8],
