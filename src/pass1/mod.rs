@@ -185,6 +185,7 @@ mod tests {
     }
 }
 
+#[cfg(test)]
 mod datatests {
 
     #[datatest::files("data/certificate_messages", {

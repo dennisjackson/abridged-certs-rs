@@ -136,7 +136,7 @@ mod tests {
 
 
     #[test]
-    fn size_limts() {
+    fn size_limits() {
         let mut cert_hex: String = String::from(CERTMSG);
         cert_hex.retain(|x| !x.is_whitespace());
         let cert_bytes = hex::decode(cert_hex).unwrap();
@@ -151,6 +151,7 @@ mod tests {
     }
 }
 
+#[cfg(test)]
 mod datatests {
 
     #[datatest::files("data/certificate_messages", {

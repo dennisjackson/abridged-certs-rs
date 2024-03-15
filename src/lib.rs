@@ -141,7 +141,7 @@ mod tests {
             .expect_err("Shouldn't be enough space!");
     }
 }
-
+#[cfg(test)]
 mod datatests {
 
     #[datatest::files("data/certificate_messages", {
