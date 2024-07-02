@@ -1,5 +1,3 @@
-#![feature(iter_array_chunks)]
-
 use serde::Deserialize;
 use std::collections::HashMap;
 use std::env;
@@ -21,11 +19,11 @@ fn hash(bytes: &[u8]) -> Vec<u8> {
 
 fn wrapper(x: &str) -> String {
     let mut output = "b\"".to_string();
-    for c in x.chars().array_chunks::<2>() {
+    for c in x.as_bytes().chunks(2) {
         output.push('\\');
         output.push('x');
-        output.push(c[0]);
-        output.push(c[1]);
+        output.push(c[0] as char);
+        output.push(c[1] as char);
     }
     output.push('\"');
     output

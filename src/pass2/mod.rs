@@ -173,6 +173,7 @@ mod tests {
 }
 
 #[cfg(test)]
+#[cfg(all(feature ="nightly-features"))]
 mod datatests {
 
     #[datatest::files("data/certificate_messages", {

@@ -6,16 +6,21 @@ build = "build.rs"
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
+[features]
+default = []
+nightly-features = ["dep:datatest"]
+
 [dependencies]
 blake = "2.0.2"
 bytes = "1.5.0"
 phf = "0.11.2"
 simple-error = "0.3.0"
 zstd = "0.13.0"
+datatest = { version = "0.8.0", optional = true }
 
 [dev-dependencies]
 hex = "0.4.3"
-datatest = "0.8.0"
+
 
 [build-dependencies]
 phf_codegen = "0.11.2"

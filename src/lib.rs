@@ -1,6 +1,7 @@
-#![feature(cursor_remaining)]
-#![feature(custom_test_frameworks)]
-#![test_runner(datatest::runner)]
+
+#[cfg(all(feature ="nightly-features"))]
+#[feature(custom_test_frameworks)]
+#[feature(custom_test_frameworks)]
 
 /* Expose internal functions to fuzzer */
 #[cfg(fuzzing)]
@@ -145,6 +146,7 @@ mod tests {
     }
 }
 #[cfg(test)]
+#[cfg(all(feature ="nightly-features"))]
 mod datatests {
 
     #[datatest::files("data/certificate_messages", {
