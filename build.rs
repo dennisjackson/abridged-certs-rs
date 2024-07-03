@@ -45,6 +45,7 @@ fn load_builtin_cert_mappings() -> impl Iterator<Item = (String, String, Vec<u8>
 fn main() {
     let mut id_to_cert = phf_codegen::Map::<&[u8]>::new();
     let mut hash_to_id = phf_codegen::Map::<&[u8]>::new();
+    let mut id_to_hash = phf_codegen::Map::<&[u8]>::new();
 
     for (id, cert, fingerprint) in load_builtin_cert_mappings() {
         dbg!(&fingerprint);
@@ -52,7 +53,8 @@ fn main() {
             hex::decode(id.clone()).expect("Hex Error").leak(),
             &wrapper(&cert),
         );
-        hash_to_id.entry(fingerprint.leak(), &wrapper(&id));
+        hash_to_id.entry(fingerprint.clone().leak(), &wrapper(&id));
+        id_to_hash.entry(hex::decode(id.clone()).expect("Hex Error").leak(), &wrapper(&hex::encode(fingerprint)));
     }
 
     let path = Path::new(&env::var("OUT_DIR").unwrap()).join("builtin_tables.rs");
@@ -62,6 +64,13 @@ fn main() {
         &mut file,
         "static ID_TO_CERT: phf::Map<&'static [u8], &'static [u8]> = \n{};\n",
         id_to_cert.build()
+    )
+    .unwrap();
+
+    writeln!(
+        &mut file,
+        "static ID_TO_HASH: phf::Map<&'static [u8], &'static [u8]> = \n{};\n",
+        id_to_hash.build()
     )
     .unwrap();
 

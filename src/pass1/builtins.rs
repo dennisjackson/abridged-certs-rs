@@ -17,6 +17,10 @@ pub fn id_to_cert(id: &[u8]) -> Option<&'static [u8]> {
     ID_TO_CERT.get(id).copied()
 }
 
+pub fn id_to_hash(id: &[u8]) -> Option<&'static [u8]> {
+    ID_TO_HASH.get(id).copied()
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -36,6 +40,14 @@ mod tests {
         for (id, cert) in ID_TO_CERT.entries() {
             let lookup = cert_to_identifier(*cert).expect("Should be present");
             assert_eq!(*id, lookup);
+        }
+    }
+
+    #[test]
+    fn  id_to_hash_agree() {
+        for (h, id) in HASH_TO_ID.entries() {
+            let h_stored = id_to_hash(*id).expect("Should be present");
+            assert_eq!(h_stored, *h);
         }
     }
 }
