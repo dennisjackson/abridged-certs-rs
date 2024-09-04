@@ -32,3 +32,10 @@ name = "pass2_decomp"
 path = "fuzz_targets/pass2_decomp.rs"
 test = false
 doc = false
+
+[[bin]]
+name = "pass1pass2"
+path = "fuzz_targets/pass1pass2.rs"
+test = false
+doc = false
+bench = false

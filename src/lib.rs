@@ -1,13 +1,14 @@
 
-#[cfg(all(feature ="nightly-features"))]
-#[feature(custom_test_frameworks)]
-#[feature(custom_test_frameworks)]
+// #[cfg(all(feature ="nightly-features"))]
+// #[feature(custom_test_frameworks)]
+
 
 /* Expose internal functions to fuzzer */
 #[cfg(fuzzing)]
 pub mod tls;
 #[cfg(not(fuzzing))]
 mod tls;
+
 
 pub mod pass1;
 pub mod pass2;

@@ -32,7 +32,7 @@ impl<'a> Compressor<'a> {
         encoder
             .include_checksum(false)
             .expect("Error disabling checksum");
-        #[cfg(not(debug))]
+        #[cfg(not(debug_assertions))]
         {
             encoder
                 .include_dictid(false)
