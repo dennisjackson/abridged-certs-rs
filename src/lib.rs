@@ -13,23 +13,23 @@ mod tls;
 pub mod pass1;
 pub mod pass2;
 
-pub struct Compressor<'a> {
+pub struct Compressor {
     p1: pass1::Compressor,
-    p2: pass2::Compressor<'a>,
+    p2: pass2::Compressor,
 }
 
-impl<'a> Compressor<'a> {
-    pub fn new(p1lookup: pass1::IdFunc, p2_dict: &[u8]) -> Self {
+impl Compressor {
+    pub fn new(p1lookup: pass1::IdFunc) -> Self {
         Compressor {
             p1: pass1::Compressor::new(p1lookup),
-            p2: pass2::Compressor::new(p2_dict),
+            p2: pass2::Compressor::new(),
         }
     }
 
     pub fn new_from_builtin() -> Self {
         Compressor {
             p1: pass1::Compressor::new_builtin(),
-            p2: pass2::Compressor::new_from_builtin(),
+            p2: pass2::Compressor::new(),
         }
     }
 
@@ -43,23 +43,23 @@ impl<'a> Compressor<'a> {
     }
 }
 
-pub struct Decompressor<'a> {
+pub struct Decompressor {
     p1: pass1::Decompressor,
-    p2: pass2::Decompressor<'a>,
+    p2: pass2::Decompressor,
 }
 
-impl<'a> Decompressor<'a> {
-    pub fn new(p1_lookup: pass1::CertFunc, p2_dict: &[u8]) -> Self {
+impl Decompressor {
+    pub fn new(p1_lookup: pass1::CertFunc) -> Self {
         Decompressor {
             p1: pass1::Decompressor::new(p1_lookup),
-            p2: pass2::Decompressor::new(p2_dict),
+            p2: pass2::Decompressor::new(),
         }
     }
 
     pub fn new_from_builtin() -> Self {
         Decompressor {
             p1: pass1::Decompressor::new_builtin(),
-            p2: pass2::Decompressor::new_from_builtin(),
+            p2: pass2::Decompressor::new(),
         }
     }
 
