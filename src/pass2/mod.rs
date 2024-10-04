@@ -3,7 +3,7 @@ use std::io::{Read, Write};
 
 const BROTLI_BUFFER_SIZE: usize = 10_000;
 const BROTLI_Q : u32 = 11;
-const BROTLI_LGWIN : u32 = 22;
+const BROTLI_LGWIN : u32 = 12;
 pub struct Compressor {
 
 }
