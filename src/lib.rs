@@ -9,10 +9,14 @@ pub mod tls;
 #[cfg(not(fuzzing))]
 mod tls;
 
+use rustls::compress::{CertCompressor, CertDecompressor};
+use bytes::{BufMut, Bytes};
+use std::io::Write;
 
 pub mod pass1;
 pub mod pass2;
 
+#[derive(Debug)]
 pub struct Compressor {
     p1: pass1::Compressor,
     p2: pass2::Compressor,
@@ -43,6 +47,26 @@ impl Compressor {
     }
 }
 
+impl CertCompressor for Compressor {
+    fn compress(
+        &self,
+        input: Vec<u8>,
+        level: rustls::compress::CompressionLevel,
+    ) -> Result<Vec<u8>, rustls::compress::CompressionFailed> {
+        let res = self.compress_to_bytes(&input);
+        if res.is_err() {
+            Err(rustls::compress::CompressionFailed)
+        } else {
+            Ok(res.unwrap())
+        }
+    }
+
+    fn algorithm(&self) -> rustls::CertificateCompressionAlgorithm {
+        rustls::CertificateCompressionAlgorithm::Unknown(9999)
+    }
+}
+
+#[derive(Debug)]
 pub struct Decompressor {
     p1: pass1::Decompressor,
     p2: pass2::Decompressor,
@@ -72,6 +96,23 @@ impl Decompressor {
         // TODO: Inefficient and needs the size limit enforcing
         let p1 = self.p1.decompress_to_bytes(&p2)?;
         Ok(p1)
+    }
+}
+
+impl CertDecompressor for Decompressor {
+    fn decompress(&self, input: &[u8], mut output: &mut [u8]) -> Result<(), rustls::compress::DecompressionFailed> {
+        let res = self.decompress_to_bytes(input,output.len() as u32);
+        if res.is_ok() {
+            let res = res.unwrap();
+            output.write_all(&res).unwrap();
+            Ok(())
+        } else {
+            Err(rustls::compress::DecompressionFailed)
+        }
+    }
+
+    fn algorithm(&self) -> rustls::CertificateCompressionAlgorithm {
+        rustls::CertificateCompressionAlgorithm::Unknown(9999)
     }
 }
 
