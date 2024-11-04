@@ -7,6 +7,7 @@ mod builtins;
 pub type IdFunc = fn(&[u8]) -> Option<&'static [u8]>;
 pub type CertFunc = fn(&[u8]) -> Option<&'static [u8]>;
 
+#[derive(Debug)]
 pub struct Compressor {
     lookup: IdFunc,
 }
@@ -61,6 +62,9 @@ impl Compressor {
     }
 }
 
+
+
+#[derive(Debug)]
 pub struct Decompressor {
     lookup: CertFunc,
 }
